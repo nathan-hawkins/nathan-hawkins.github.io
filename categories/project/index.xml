@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on Nathan Hawkins A Github Site</title>
-    <link>/post/</link>
-    <description>Recent content in Posts on Nathan Hawkins A Github Site</description>
+    <title>Project on Nathan Hawkins A Github Site</title>
+    <link>/categories/project/</link>
+    <description>Recent content in Project on Nathan Hawkins A Github Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 31 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 31 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="/categories/project/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>What&#39;s the greatest season by an NFL quarterback ever?</title>
       <link>/2021/10/31/what-s-the-greatest-season-by-an-nfl-quarterback-ever/</link>

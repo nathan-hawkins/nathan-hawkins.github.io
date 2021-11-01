@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.88.1" />
+
+
+<title>What&#39;s the greatest season by an NFL quarterback ever? - Nathan Hawkins A Github Site</title>
+<meta property="og:title" content="What&#39;s the greatest season by an NFL quarterback ever? - Nathan Hawkins A Github Site">
+
+
+  <link href='/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="https://github.com/rstudio/blogdown">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/rstudio">Twitter</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">16 min read</span>
+    
+
+    <h1 class="article-title">What&#39;s the greatest season by an NFL quarterback ever?</h1>
+
+    
+    <span class="article-date">2021-10-31</span>
+    
+
+    <div class="article-content">
+      
+<script src="/2021/10/31/what-s-the-greatest-season-by-an-nfl-quarterback-ever/index_files/header-attrs/header-attrs.js"></script>
+
+
+<p>What I witnessed while watching the Green Bay Packers on Sundays in 2020 was truly special. My team, which I can say because technically I’m an owner of the Packers, finished the season 13-3. Top 10 defense, a handful of All-Pros, and a coach with some swagger that brought excitement to our offense. Above all of that, I watched quarterback Aaron Rodgers dice up the field he was Gordon Ramsay in Hell’s Kitchen.</p>
+<p>Playing for the team who just recently drafted his replacement, Rodgers had 48 touchdowns and just 5 interceptions on his way to the third MVP season of his career. When the season was over, I had to ask the question: Was this the greatest season a quarterback has ever played?</p>
+<p>That leads us to this project. I’ve gathered in-depth data dating back to 1967, the first season of the Super Bowl. In total, there are 275 individual seasons that I felt were worth pondering further as a potential greatest season of all-time.</p>
+<p>The critera wasn’t too convuluted: if you passed for at least 26 touchdowns in a season, welcome to the list! Every player to pass for at least 26 touchdowns is part of the player pool, and there were a few other exceptions who I put on the list as I thought they might be notable. The inital stats I took from each players season were: Passing Touchdowns, team wins, losses and ties, passer rating, passing yards, passing yards per game, interceptions, pass completions and pass attempts. I also made note if that player won a conference championship and/or Super Bowl in the season in which they’re listed. The process was tedious, but it ultimately gave me a comprehensive look at some of the best seasons by a quarterback in league history.</p>
+<p>With a 275 season database, the hard part is where to start. Lucky for us, the first two steps are nearly always the same:</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
+## ✓ tibble  3.1.3     ✓ dplyr   1.0.7
+## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
+## ✓ readr   2.0.1     ✓ forcats 0.5.1</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<p>The next step is to load in the .csv, which in this case is from the Excel sheet I created to log the data:</p>
+<pre class="r"><code>qbdata &lt;- read_csv(&quot;sportsrefcumulativetemplate.csv&quot;)</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...17
+## * `` -&gt; ...18
+## * `` -&gt; ...19
+## * `` -&gt; ...20
+## * `` -&gt; ...21</code></pre>
+<pre><code>## Rows: 299 Columns: 21</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (4): Player, Tm, Conferencechampion, Superbowlchampion
+## dbl (11): Rank, TD, Year, Teamwins, Teamlosses, Ties, Passerrating, Pypg, In...
+## lgl  (5): ...17, ...18, ...19, ...20, ...21</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<p>Now, I want to select the data I’ll be using in the short-term for the project. Below are all the sections that are relevant for the next few parts.</p>
+<pre class="r"><code>qbpassing &lt;- qbdata %&gt;%
+  select(&quot;Player&quot;, &quot;Passingyards&quot;, &quot;Passcompletions&quot;, &quot;Passattempts&quot;, &quot;TD&quot;, &quot;Year&quot;, &quot;Teamwins&quot;, &quot;Teamlosses&quot;, &quot;Ties&quot;, &quot;Passerrating&quot;, &quot;Superbowlchampion&quot;)</code></pre>
+<p>Now we’re ready to roll. The next step is to get the data sets for each individual stat complete. For that, we’ll group by our player and year and then sum the data points we need.</p>
+<pre class="r"><code>qbpassing &lt;- qbdata %&gt;%
+  group_by(Player, Year) %&gt;%
+  summarise(
+    Passingyards = sum(`Passingyards`),
+    Passattempts = sum(`Passattempts`),
+    TD = sum(`TD`),
+    Teamwins=sum(`Teamwins`),
+     Int = sum(`Int`),
+    Passcompletions=sum(`Passcompletions`),
+    Passerrating = sum(`Passerrating`))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;Player&#39;. You can override using the `.groups` argument.</code></pre>
+<p>If we take a look at our qbpassing dataset, we can see one season that immediately leaps off the page: Peyton Manning’s 2013 campaign. In 2013, Manning broke the records for passing yards and touchdowns in a season. Let’s put him in his own dataset to highlight the man.</p>
+<pre class="r"><code>qbpassing %&gt;%
+  filter(Player == &quot;Peyton Manning&quot;, Year == 2013) -&gt; Peyton</code></pre>
+<p>The best way to get a good, surface level view on the best seasons of all time, let’s make a scatterplot. To add a level of interest, we’ll highlight players who won their conference championship and players who won the Super Bowl. Let’s put them in their own dataframe.</p>
+<pre class="r"><code>superbowlchampion &lt;- qbdata %&gt;%
+  group_by(Player, Year) %&gt;%
+  select(&quot;Player&quot;, &quot;Year&quot;, &quot;TD&quot;, &quot;Passingyards&quot;,&quot;Teamwins&quot;, &quot;Superbowlchampion&quot;, &quot;Conferencechampion&quot;) %&gt;%
+  filter(Superbowlchampion == &quot;Yes&quot;)
+
+conferencechampion &lt;- qbdata %&gt;%
+  group_by(Player, Year) %&gt;%
+  select(&quot;Player&quot;, &quot;Year&quot;, &quot;TD&quot;, &quot;Passingyards&quot;,&quot;Teamwins&quot;, &quot;Superbowlchampion&quot;, &quot;Conferencechampion&quot;) %&gt;%
+    filter(Conferencechampion == &quot;Yes&quot;)</code></pre>
+<p>We have to load in our library:</p>
+<pre class="r"><code>library(ggrepel)</code></pre>
+<p>So now we make the graphic. Using our three different datasets, this gives us our basic stats with a bit of flair for Peyton Manning as well as conference champions and Super Bowl Champions.</p>
+<pre class="r"><code>ggplot() +
+  geom_point(
+    data = qbpassing, aes(x=Passingyards, y=TD), color=&quot;grey&quot;,alpha=.5) +
+  scale_size(range = c(2, 6), name=&quot;Wins&quot;) +
+  geom_point(
+    data =conferencechampion, 
+    aes(x=Passingyards, y=TD), color=&quot;green&quot;, alpha=.9) +
+  geom_point(
+    data = superbowlchampion, 
+    aes(x=Passingyards, y=TD), color=&quot;gold&quot;, alpha=.9) +
+   geom_text_repel(
+    data=Peyton, 
+    aes(x=Passingyards, y=TD, label= &quot;Peyton Manning, 2013&quot;)
+  ) +
+geom_smooth(data = qbpassing, aes(x=Passingyards, y=TD), method=lm, se=FALSE) +
+labs(
+  x=&quot;Total Single Season Passing Yards&quot;, 
+    y=&quot;Total Passing Touchdowns&quot;, 
+    title=&quot;Last Man-ning Standing&quot;, 
+    subtitle=&quot;Peyton Manning had more passing yards and passing touchdowns in 2013 than any other quaterback in any single season ever&quot;,
+    caption=&quot;Source: Sports Reference | By Nathan Hawkins&quot;
+) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 20, face = &quot;bold&quot;),
+    axis.title = element_text(size = 8), 
+    plot.subtitle = element_text(size=6), 
+    panel.grid.minor = element_blank()
+  )</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_smooth).</code></pre>
+<pre><code>## Warning: Removed 1 rows containing missing values (geom_point).</code></pre>
+<p><img src="/2021/10/31/what-s-the-greatest-season-by-an-nfl-quarterback-ever/index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Lets look at some different stats to see if we can get a different answer. Now, it seems Manning is far and away the best. What if we take the top 50 from the categories pass copmletions, touchdowns, and interceptions, and see what we have in common.</p>
+<pre class="r"><code>theelites &lt;- qbdata %&gt;%
+  select(&quot;Player&quot;, &quot;Passingyards&quot;, &quot;Passattempts&quot;, &quot;Passcompletions&quot;, &quot;TD&quot;,&quot;Pypg&quot;,&quot;Year&quot;, &quot;Int&quot;, &quot;Teamwins&quot;, &quot;Teamlosses&quot;, &quot;Ties&quot;, &quot;Passerrating&quot;) %&gt;%
+    group_by(Player, Year) %&gt;%
+  summarise(
+    Passingyards = sum(`Passingyards`),
+    Passattempts = sum(`Passattempts`),
+    TD = sum(`TD`),
+    Teamwins=sum(`Teamwins`),
+    Teamlosses=sum(`Teamlosses`),
+    Ties=sum(`Ties`),
+    Int=sum(`Int`),
+    Passerrating=sum(`Passerrating`),
+    Pypg=sum(`Pypg`),
+    Passcompletions=sum(`Passcompletions`)
+    )%&gt;%
+ filter( Passcompletions &gt; 383, TD &gt; 33, Int &lt; 10)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;Player&#39;. You can override using the `.groups` argument.</code></pre>
+<p>We have our group of interesting candidate. We have Aaron Rodgers in 2016, Matt Ryan in 2018, Mahomes in 2020, and Tom Brady in 2007, 2012 and 2015. Let’s load in the library.</p>
+<pre class="r"><code>library(waffle)</code></pre>
+<p>Here, we create different datasets for the six seasons that qualify, and we fill in the stats appropriately.</p>
+<pre class="r"><code>ARod2016 &lt;- c(&quot;Attempts&quot;=610, &quot;Completions&quot;=401, &quot;Touchdowns&quot;=40, &quot;INT&quot;=7)
+Ryan2018 &lt;- c(&quot;Attempts&quot;=608, &quot;Completions&quot;=422, &quot;Touchdowns&quot;=35, &quot;INT&quot;=7)
+Mahomes2020 &lt;- c(&quot;Attempts&quot;=588, &quot;Completions&quot;=390, &quot;Touchdowns&quot;=38, &quot;INT&quot;=6)
+Brady2007 &lt;- c(&quot;Attempts&quot;=578, &quot;Completions&quot;=398, &quot;Touchdowns&quot;=50, &quot;INT&quot;=8)
+Brady2012 &lt;- c(&quot;Attempts&quot;=637, &quot;Completions&quot;=401, &quot;Touchdowns&quot;=34, &quot;INT&quot;=8)
+Brady2015 &lt;- c(&quot;Attempts&quot;=624, &quot;Completions&quot;=402, &quot;Touchdowns&quot;=36, &quot;INT&quot;=7)</code></pre>
+<p>With this waffle chart, we can see how they had the success they did. Lots of completions, little interceptions, and plenty touchdowns.</p>
+<pre class="r"><code>  waffle(ARod2016/2,
+         rows = 18,
+         title= &quot;Aaron Rodgers, 2016&quot;, 
+         xlab = &quot;1 square = 2.5 passes&quot;,
+         colors = c(&quot;grey&quot;, &quot;black&quot;,&quot;green&quot;,&quot;red&quot;))</code></pre>
+<p><img src="/2021/10/31/what-s-the-greatest-season-by-an-nfl-quarterback-ever/index_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<pre class="r"><code>  waffle(Ryan2018/2,
+         rows = 18,
+         title= &quot;Matt Ryan, 2018&quot;, 
+         xlab = &quot;1 square = 2.5 passes&quot;,
+         colors = c(&quot;grey&quot;, &quot;black&quot;,&quot;green&quot;,&quot;red&quot;))</code></pre>
+<p><img src="/2021/10/31/what-s-the-greatest-season-by-an-nfl-quarterback-ever/index_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
+<pre class="r"><code>   waffle(Mahomes2020/2,
+         rows = 18,
+         title= &quot;Patrick Mahomes, 2020&quot;, 
+         xlab = &quot;1 square = 2.5 passes&quot;,
+         colors = c(&quot;grey&quot;, &quot;black&quot;,&quot;green&quot;,&quot;red&quot;))</code></pre>
+<p><img src="/2021/10/31/what-s-the-greatest-season-by-an-nfl-quarterback-ever/index_files/figure-html/unnamed-chunk-12-3.png" width="672" /></p>
+<pre class="r"><code>    waffle(Brady2007/2,
+         rows = 18,
+         title= &quot;Tom Brady, 2007&quot;, 
+         xlab = &quot;1 square = 2.5 passes&quot;,
+         colors = c(&quot;grey&quot;, &quot;black&quot;,&quot;green&quot;,&quot;red&quot;))</code></pre>
+<p><img src="/2021/10/31/what-s-the-greatest-season-by-an-nfl-quarterback-ever/index_files/figure-html/unnamed-chunk-12-4.png" width="672" /></p>
+<pre class="r"><code>     waffle(Brady2012/2,
+         rows = 18,
+         title= &quot;Tom Brady, 2012&quot;, 
+         xlab = &quot;1 square = 2.5 passes&quot;,
+         colors = c(&quot;grey&quot;, &quot;black&quot;,&quot;green&quot;,&quot;red&quot;))</code></pre>
+<p><img src="/2021/10/31/what-s-the-greatest-season-by-an-nfl-quarterback-ever/index_files/figure-html/unnamed-chunk-12-5.png" width="672" /></p>
+<pre class="r"><code>     waffle(Brady2015/2,
+         rows = 18,
+         title= &quot;Tom Brady, 2015&quot;, 
+         xlab = &quot;1 square = 2.5 passes&quot;,
+         colors = c(&quot;grey&quot;, &quot;black&quot;,&quot;green&quot;,&quot;red&quot;))</code></pre>
+<p><img src="/2021/10/31/what-s-the-greatest-season-by-an-nfl-quarterback-ever/index_files/figure-html/unnamed-chunk-12-6.png" width="672" />
+Let’s try one more unique way of looking at it. We’ll create a new dataframe called eliteness.</p>
+<pre class="r"><code>eliteness &lt;- qbpassing %&gt;% 
+  select(&quot;Player&quot;, &quot;Passattempts&quot;, &quot;Passcompletions&quot;, &quot;Passingyards&quot;, &quot;TD&quot;, &quot;Year&quot;, &quot;Teamwins&quot;, &quot;Passerrating&quot;, &quot;Int&quot;)</code></pre>
+<p>Now we load in the different categories.</p>
+<pre class="r"><code>eliteness %&gt;%
+group_by(Player, Year) %&gt;%
+  summarise(
+    Passingyards = sum(`Passingyards`),
+    Passattempts = sum(`Passattempts`),
+    TD = sum(`TD`),
+    Teamwins=sum(`Teamwins`),
+    Int = sum(`Int`),
+    Passcompletions=sum(`Passcompletions`),
+    Passerrating = sum(`Passerrating`)
+    ) </code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;Player&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 276 × 9
+## # Groups:   Player [99]
+##    Player         Year Passingyards Passattempts    TD Teamwins   Int Passcompletions
+##    &lt;chr&gt;         &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;           &lt;dbl&gt;
+##  1 Aaron Brooks   2001         3832          558    26        7    22             312
+##  2 Aaron Brooks   2002         3572          528    27        9    15             283
+##  3 Aaron Rodgers  2008         4038          536    28        6    13             341
+##  4 Aaron Rodgers  2009         4434          541    30       11     7             350
+##  5 Aaron Rodgers  2010         3922          475    28       10    11             312
+##  6 Aaron Rodgers  2011         4643          502    45       15     6             343
+##  7 Aaron Rodgers  2012         4295          552    39       11     8             371
+##  8 Aaron Rodgers  2014         4381          520    38       12     5             341
+##  9 Aaron Rodgers  2015         3821          572    31       10     8             347
+## 10 Aaron Rodgers  2016         4428          610    40       10     7             401
+## # … with 266 more rows, and 1 more variable: Passerrating &lt;dbl&gt;</code></pre>
+<p>For the first time, lets mutate in our own data. The percent of passes that were touchdowns, and the percent that were interceptions.</p>
+<pre class="r"><code>eliteness %&gt;%
+  mutate(intpercent = (Int/Passattempts)*100) %&gt;% arrange(desc(intpercent)) -&gt; eliteness
+
+eliteness %&gt;%
+mutate(tdpercent = (TD/Passattempts)*100) %&gt;% arrange(desc(tdpercent)) -&gt; eliteness</code></pre>
+<p>A good way to tell quarterback quality is touchdown percentage to interception percentage. So why don’t we try finding the difference between the two. The larger the number, the better the season. Since we’re finding the best of the best, lets call it elite score.</p>
+<pre class="r"><code>eliteness %&gt;%
+  mutate(totalpercent = (tdpercent - intpercent)) %&gt;% arrange(desc(totalpercent)) -&gt; eliteness</code></pre>
+<p>The top ten is elitescore of more than 6.33. Lets filter those players in.</p>
+<pre class="r"><code>eliteness %&gt;%
+  group_by(Player, Year) %&gt;%
+  summarise(
+    Elitescore = sum(totalpercent)) %&gt;%
+  filter(
+    Elitescore &gt; 6.33) -&gt; elitescore</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;Player&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>library(gt)</code></pre>
+<pre class="r"><code>eliteness %&gt;%
+   select(&quot;Player&quot;, &quot;Passattempts&quot;, &quot;Passcompletions&quot;, &quot;Passingyards&quot;, &quot;TD&quot;, &quot;Year&quot;, &quot;Teamwins&quot;, &quot;Passerrating&quot;, &quot;Int&quot;)</code></pre>
+<pre><code>## # A tibble: 276 × 9
+## # Groups:   Player [99]
+##    Player          Passattempts Passcompletions Passingyards    TD  Year Teamwins
+##    &lt;chr&gt;                  &lt;dbl&gt;           &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;
+##  1 Aaron Rodgers            526             372         4299    48  2020       13
+##  2 Peyton Manning           497             336         4557    49  2004       12
+##  3 Aaron Rodgers            502             343         4643    45  2011       15
+##  4 Lamar Jackson            401             265         3127    36  2019       14
+##  5 Tom Brady                578             398         4806    50  2007       16
+##  6 Peyton Manning           659             450         5477    55  2013       13
+##  7 Russell Wilson           427             280         3448    35  2018       10
+##  8 Patrick Mahomes          580             383         5097    50  2018       12
+##  9 Tom Brady                492             324         3900    36  2010       14
+## 10 Aaron Rodgers            520             341         4381    38  2014       12
+## # … with 266 more rows, and 2 more variables: Passerrating &lt;dbl&gt;, Int &lt;dbl&gt;</code></pre>
+<pre class="r"><code>elitescore %&gt;% gt()</code></pre>
+<div id="rocalnnnpc" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#rocalnnnpc .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#rocalnnnpc .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#rocalnnnpc .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#rocalnnnpc .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#rocalnnnpc .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#rocalnnnpc .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#rocalnnnpc .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#rocalnnnpc .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#rocalnnnpc .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#rocalnnnpc .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#rocalnnnpc .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#rocalnnnpc .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#rocalnnnpc .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#rocalnnnpc .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#rocalnnnpc .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#rocalnnnpc .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#rocalnnnpc .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#rocalnnnpc .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rocalnnnpc .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#rocalnnnpc .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rocalnnnpc .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#rocalnnnpc .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#rocalnnnpc .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#rocalnnnpc .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#rocalnnnpc .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#rocalnnnpc .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#rocalnnnpc .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#rocalnnnpc .gt_left {
+  text-align: left;
+}
+
+#rocalnnnpc .gt_center {
+  text-align: center;
+}
+
+#rocalnnnpc .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#rocalnnnpc .gt_font_normal {
+  font-weight: normal;
+}
+
+#rocalnnnpc .gt_font_bold {
+  font-weight: bold;
+}
+
+#rocalnnnpc .gt_font_italic {
+  font-style: italic;
+}
+
+#rocalnnnpc .gt_super {
+  font-size: 65%;
+}
+
+#rocalnnnpc .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 65%;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Year</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Elitescore</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Aaron Rodgers</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2011</td>
+<td class="gt_row gt_right">7.768924</td></tr>
+    <tr><td class="gt_row gt_right">2014</td>
+<td class="gt_row gt_right">6.346154</td></tr>
+    <tr><td class="gt_row gt_right">2020</td>
+<td class="gt_row gt_right">8.174905</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Lamar Jackson</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2019</td>
+<td class="gt_row gt_right">7.481297</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Patrick Mahomes</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2018</td>
+<td class="gt_row gt_right">6.551724</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Peyton Manning</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2004</td>
+<td class="gt_row gt_right">7.847082</td></tr>
+    <tr><td class="gt_row gt_right">2013</td>
+<td class="gt_row gt_right">6.828528</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Russell Wilson</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2018</td>
+<td class="gt_row gt_right">6.557377</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Tom Brady</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2007</td>
+<td class="gt_row gt_right">7.266436</td></tr>
+    <tr><td class="gt_row gt_right">2010</td>
+<td class="gt_row gt_right">6.504065</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<p>Now that we have our chart, let’s make it nicer.</p>
+<pre class="r"><code> elitescore %&gt;%
+ gt() %&gt;% 
+  cols_label(
+    Elitescore = &quot;Elite Score&quot;,
+  )  %&gt;%
+  tab_header(
+    title = &quot;Is Aaron Rodgers&#39; 2020 season the best ever?&quot;,
+    subtitle = &quot;Based off the difference in touchdown and interception percentage, Aaron Rodgers&#39; 2020 campaign holds the top spot for greatest single season of all time.&quot;
+  ) %&gt;% tab_style(
+    style = cell_text(color = &quot;black&quot;, weight = &quot;bold&quot;, align = &quot;left&quot;),
+    locations = cells_title(&quot;title&quot;)
+  ) %&gt;% tab_style(
+    style = cell_text(color = &quot;black&quot;, align = &quot;left&quot;),
+    locations = cells_title(&quot;subtitle&quot;)
+  )</code></pre>
+<div id="doyagglzvk" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#doyagglzvk .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#doyagglzvk .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#doyagglzvk .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#doyagglzvk .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#doyagglzvk .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#doyagglzvk .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#doyagglzvk .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#doyagglzvk .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#doyagglzvk .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#doyagglzvk .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#doyagglzvk .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#doyagglzvk .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#doyagglzvk .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#doyagglzvk .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#doyagglzvk .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#doyagglzvk .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#doyagglzvk .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#doyagglzvk .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#doyagglzvk .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#doyagglzvk .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#doyagglzvk .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#doyagglzvk .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#doyagglzvk .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#doyagglzvk .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#doyagglzvk .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#doyagglzvk .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#doyagglzvk .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#doyagglzvk .gt_left {
+  text-align: left;
+}
+
+#doyagglzvk .gt_center {
+  text-align: center;
+}
+
+#doyagglzvk .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#doyagglzvk .gt_font_normal {
+  font-weight: normal;
+}
+
+#doyagglzvk .gt_font_bold {
+  font-weight: bold;
+}
+
+#doyagglzvk .gt_font_italic {
+  font-style: italic;
+}
+
+#doyagglzvk .gt_super {
+  font-size: 65%;
+}
+
+#doyagglzvk .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 65%;
+}
+</style>
+<table class="gt_table">
+  <thead class="gt_header">
+    <tr>
+      <th colspan="2" class="gt_heading gt_title gt_font_normal" style="color: #000000; text-align: left; font-weight: bold;">Is Aaron Rodgers' 2020 season the best ever?</th>
+    </tr>
+    <tr>
+      <th colspan="2" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style="color: #000000; text-align: left;">Based off the difference in touchdown and interception percentage, Aaron Rodgers' 2020 campaign holds the top spot for greatest single season of all time.</th>
+    </tr>
+  </thead>
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Year</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Elite Score</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Aaron Rodgers</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2011</td>
+<td class="gt_row gt_right">7.768924</td></tr>
+    <tr><td class="gt_row gt_right">2014</td>
+<td class="gt_row gt_right">6.346154</td></tr>
+    <tr><td class="gt_row gt_right">2020</td>
+<td class="gt_row gt_right">8.174905</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Lamar Jackson</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2019</td>
+<td class="gt_row gt_right">7.481297</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Patrick Mahomes</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2018</td>
+<td class="gt_row gt_right">6.551724</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Peyton Manning</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2004</td>
+<td class="gt_row gt_right">7.847082</td></tr>
+    <tr><td class="gt_row gt_right">2013</td>
+<td class="gt_row gt_right">6.828528</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Russell Wilson</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2018</td>
+<td class="gt_row gt_right">6.557377</td></tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="2" class="gt_group_heading">Tom Brady</td>
+    </tr>
+    <tr><td class="gt_row gt_right">2007</td>
+<td class="gt_row gt_right">7.266436</td></tr>
+    <tr><td class="gt_row gt_right">2010</td>
+<td class="gt_row gt_right">6.504065</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<p>So maybe Rodgers did have the greatest season ever? It just depends on how you look at it. All of these quarterbacks had stellar seasons. Data can tell vastly different stories depending on how you look at it. Diving into the data, we have different quarterbacks who can go down as having greatest single season ever.</p>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+
