@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.88.1" />
+
+
+<title>Cleaning Football Logs - Nathan Hawkins A Github Site</title>
+<meta property="og:title" content="Cleaning Football Logs - Nathan Hawkins A Github Site">
+
+
+  <link href='/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="https://github.com/rstudio/blogdown">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/rstudio">Twitter</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">4 min read</span>
+    
+
+    <h1 class="article-title">Cleaning Football Logs</h1>
+
+    
+    <span class="article-date">2021-11-03</span>
+    
+
+    <div class="article-content">
+      
+<script src="/2021/11/03/cleaning-football-logs/index_files/header-attrs/header-attrs.js"></script>
+
+
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
+## ✓ tibble  3.1.3     ✓ dplyr   1.0.7
+## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
+## ✓ readr   2.0.1     ✓ forcats 0.5.1</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>read_csv(&quot;badfootballlogs19.csv&quot;) -&gt; footballlogs19</code></pre>
+<pre><code>## Rows: 1662 Columns: 51</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (8): Date, HomeAway, Opponent, Result, TeamFull, TeamURL, Team, Conference
+## dbl (43): Game, PassingCmp, PassingAtt, PassingPct, PassingYds, PassingTD, R...</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>footballlogs19 %&gt;%
+  separate(Result, into=c(&quot;Outcome&quot;, &quot;Score&quot;), sep=&quot;&quot;) %&gt;%
+  head()</code></pre>
+<pre><code>## Warning: Expected 2 pieces. Additional pieces discarded in 1662 rows [1, 2, 3,
+## 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
+<pre><code>## # A tibble: 6 × 52
+##    Game Date    HomeAway Opponent Outcome Score PassingCmp PassingAtt PassingPct
+##   &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+## 1     1 8/24/19 N        Miami (… &quot;&quot;      W             17         27       63  
+## 2     2 9/7/19  &lt;NA&gt;     Tenness… &quot;&quot;      W             30         36       83.3
+## 3     3 9/14/19 @        Kentucky &quot;&quot;      W             21         30       70  
+## 4     4 9/21/19 &lt;NA&gt;     Tenness… &quot;&quot;      W             24         34       70.6
+## 5     5 9/28/19 &lt;NA&gt;     Towson   &quot;&quot;      W             24         28       85.7
+## 6     6 10/5/19 &lt;NA&gt;     Auburn   &quot;&quot;      W             25         39       64.1
+## # … with 43 more variables: PassingYds &lt;dbl&gt;, PassingTD &lt;dbl&gt;,
+## #   RushingAtt &lt;dbl&gt;, RushingYds &lt;dbl&gt;, RushingAvg &lt;dbl&gt;, RushingTD &lt;dbl&gt;,
+## #   OffensivePlays &lt;dbl&gt;, OffensiveYards &lt;dbl&gt;, OffenseAvg &lt;dbl&gt;,
+## #   FirstDownPass &lt;dbl&gt;, FirstDownRush &lt;dbl&gt;, FirstDownPen &lt;dbl&gt;,
+## #   FirstDownTotal &lt;dbl&gt;, Penalties &lt;dbl&gt;, PenaltyYds &lt;dbl&gt;, Fumbles &lt;dbl&gt;,
+## #   Interceptions &lt;dbl&gt;, TotalTurnovers &lt;dbl&gt;, TeamFull &lt;chr&gt;, TeamURL &lt;chr&gt;,
+## #   DefPassingCmp &lt;dbl&gt;, DefPassingAtt &lt;dbl&gt;, DefPassingPct &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>footballlogs19 %&gt;%
+  separate(Result, into=c(&quot;Outcome&quot;, &quot;Score&quot;), sep=&quot;&quot;) %&gt;%
+  separate(Score, into = c(&quot;Outcome&quot;, &quot;Score&quot;), sep = &quot;\\(&quot;)%&gt;%
+  mutate(Score = gsub(&quot;)&quot;,&quot;&quot;,Score,fixed = TRUE)) %&gt;%
+  head()</code></pre>
+<pre><code>## Warning: Expected 2 pieces. Additional pieces discarded in 1662 rows [1, 2, 3,
+## 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
+<pre><code>## Warning: Expected 2 pieces. Missing pieces filled with `NA` in 1662 rows [1, 2,
+## 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
+<pre><code>## # A tibble: 6 × 52
+##    Game Date    HomeAway Opponent PassingCmp Outcome Score PassingAtt PassingPct
+##   &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+## 1     1 8/24/19 N        Miami (…         17 W       &lt;NA&gt;          27       63  
+## 2     2 9/7/19  &lt;NA&gt;     Tenness…         30 W       &lt;NA&gt;          36       83.3
+## 3     3 9/14/19 @        Kentucky         21 W       &lt;NA&gt;          30       70  
+## 4     4 9/21/19 &lt;NA&gt;     Tenness…         24 W       &lt;NA&gt;          34       70.6
+## 5     5 9/28/19 &lt;NA&gt;     Towson           24 W       &lt;NA&gt;          28       85.7
+## 6     6 10/5/19 &lt;NA&gt;     Auburn           25 W       &lt;NA&gt;          39       64.1
+## # … with 43 more variables: PassingYds &lt;dbl&gt;, PassingTD &lt;dbl&gt;,
+## #   RushingAtt &lt;dbl&gt;, RushingYds &lt;dbl&gt;, RushingAvg &lt;dbl&gt;, RushingTD &lt;dbl&gt;,
+## #   OffensivePlays &lt;dbl&gt;, OffensiveYards &lt;dbl&gt;, OffenseAvg &lt;dbl&gt;,
+## #   FirstDownPass &lt;dbl&gt;, FirstDownRush &lt;dbl&gt;, FirstDownPen &lt;dbl&gt;,
+## #   FirstDownTotal &lt;dbl&gt;, Penalties &lt;dbl&gt;, PenaltyYds &lt;dbl&gt;, Fumbles &lt;dbl&gt;,
+## #   Interceptions &lt;dbl&gt;, TotalTurnovers &lt;dbl&gt;, TeamFull &lt;chr&gt;, TeamURL &lt;chr&gt;,
+## #   DefPassingCmp &lt;dbl&gt;, DefPassingAtt &lt;dbl&gt;, DefPassingPct &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>footballlogs19 %&gt;% 
+  separate(Result, into=c(&quot;Outcome&quot;, &quot;Score&quot;), sep=&quot;&quot;) %&gt;%
+  separate(Score, into = c(&quot;TeamScore&quot;,&quot;OpponentScore&quot;), sep = &quot;\\(&quot;) %&gt;%
+  mutate(OpponentScore=gsub(&quot;)&quot;,&quot;&quot;, OpponentScore)) %&gt;%
+separate(OpponentScore, into=c(&quot;TeamScore&quot;, &quot;OpponentScore&quot;), sep = &quot;-&quot;) %&gt;%
+  head()</code></pre>
+<pre><code>## Warning: Expected 2 pieces. Additional pieces discarded in 1662 rows [1, 2, 3,
+## 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
+<pre><code>## Warning: Expected 2 pieces. Missing pieces filled with `NA` in 1662 rows [1, 2,
+## 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
+<pre><code>## # A tibble: 6 × 53
+##    Game Date    HomeAway Opponent         Outcome PassingCmp TeamScore OpponentScore
+##   &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;            &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;        
+## 1     1 8/24/19 N        Miami (FL)       &quot;&quot;              17 &lt;NA&gt;      &lt;NA&gt;         
+## 2     2 9/7/19  &lt;NA&gt;     Tennessee-Martin &quot;&quot;              30 &lt;NA&gt;      &lt;NA&gt;         
+## 3     3 9/14/19 @        Kentucky         &quot;&quot;              21 &lt;NA&gt;      &lt;NA&gt;         
+## 4     4 9/21/19 &lt;NA&gt;     Tennessee        &quot;&quot;              24 &lt;NA&gt;      &lt;NA&gt;         
+## 5     5 9/28/19 &lt;NA&gt;     Towson           &quot;&quot;              24 &lt;NA&gt;      &lt;NA&gt;         
+## 6     6 10/5/19 &lt;NA&gt;     Auburn           &quot;&quot;              25 &lt;NA&gt;      &lt;NA&gt;         
+## # … with 45 more variables: PassingAtt &lt;dbl&gt;, PassingPct &lt;dbl&gt;,
+## #   PassingYds &lt;dbl&gt;, PassingTD &lt;dbl&gt;, RushingAtt &lt;dbl&gt;, RushingYds &lt;dbl&gt;,
+## #   RushingAvg &lt;dbl&gt;, RushingTD &lt;dbl&gt;, OffensivePlays &lt;dbl&gt;,
+## #   OffensiveYards &lt;dbl&gt;, OffenseAvg &lt;dbl&gt;, FirstDownPass &lt;dbl&gt;,
+## #   FirstDownRush &lt;dbl&gt;, FirstDownPen &lt;dbl&gt;, FirstDownTotal &lt;dbl&gt;,
+## #   Penalties &lt;dbl&gt;, PenaltyYds &lt;dbl&gt;, Fumbles &lt;dbl&gt;, Interceptions &lt;dbl&gt;,
+## #   TotalTurnovers &lt;dbl&gt;, TeamFull &lt;chr&gt;, TeamURL &lt;chr&gt;, DefPassingCmp &lt;dbl&gt;, …</code></pre>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+
