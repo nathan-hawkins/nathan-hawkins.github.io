@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.88.1" />
+
+
+<title>Should Klay Thompson be on the NBA 75 year anniversary team? - Nathan Hawkins A Github Site</title>
+<meta property="og:title" content="Should Klay Thompson be on the NBA 75 year anniversary team? - Nathan Hawkins A Github Site">
+
+
+  <link href='/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="https://github.com/rstudio/blogdown">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/rstudio">Twitter</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">8 min read</span>
+    
+
+    <h1 class="article-title">Should Klay Thompson be on the NBA 75 year anniversary team?</h1>
+
+    
+    <span class="article-date">2021-12-05</span>
+    
+
+    <div class="article-content">
+      
+<script src="/2021/12/05/should-klay-thompson-be-on-the-nba-75-year-anniversary-team/index_files/header-attrs/header-attrs.js"></script>
+
+
+<p>To commemorate the 75 year anniversary of one of the most popular professional sports leagues in the world, the NBA released their 75 year anniversary team. Like the previous two additions of the list that come every 25 years, the list was filled with names founding fathers of the NBA, players who ran the league during it’s boom in the 80s and 90s, and even current players. But when trying to limit a leagues history to 75 players, there’s always controversy.</p>
+<p>Klay Thompson spearheaded some of the complaints. For the days follow the release of the list, Thompson caused a stir by claiming he should have been on the list. Today, I’m going to try and answer that question. Should Klay Thompson be on the list of top 75 NBA players ever?</p>
+<p>We start the same way every time, we head into the tidyverse.</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
+## ✓ tibble  3.1.6     ✓ dplyr   1.0.7
+## ✓ tidyr   1.1.4     ✓ stringr 1.4.0
+## ✓ readr   2.0.2     ✓ forcats 0.5.1</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<p>Next, we load in the data. I created a list consisting of the data of every player on the list.</p>
+<pre class="r"><code>data &lt;- read_csv(&quot;NBA75csv.csv&quot;)</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...22</code></pre>
+<pre><code>## Rows: 77 Columns: 22</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (3): player, position, active
+## dbl (13): seasonsplayed, ppg, rpg, apg, spg, bpg, rings, mvp, finalsmvp, all...
+## lgl  (1): ...22</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<p>We’ll start by trying to create an average NBA 75 player. To do that, let’s first get the data we want to diver deeper into.</p>
+<pre class="r"><code>bigballers &lt;- data %&gt;% 
+  select(&quot;player&quot;, &quot;position&quot;, &quot;seasonsplayed&quot;, &quot;totalpoints&quot;, &quot;totalrebounds&quot;, &quot;totalassists&quot;) %&gt;%
+  group_by(player, position) %&gt;%
+  summarise(
+    seasonsplayed = sum(`seasonsplayed`),
+    totalpoints = sum(`totalpoints`),
+    totalrebounds = sum(`totalrebounds`),
+    totalassists = sum(`totalassists`)
+  )</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;player&#39;. You can override using the `.groups` argument.</code></pre>
+<p>Now I’m going to subtract Klay Thompson’s data from this dataset. I want to compare Klay to the NBA 75’s data, which Klay isn’t part of.</p>
+<pre class="r"><code>bigballers %&gt;%
+   ungroup() %&gt;%
+   summarise(
+    seasonsplayed = sum(`seasonsplayed`),
+    totalpoints = sum(`totalpoints`),
+    totalrebounds = sum(`totalrebounds`),
+    totalassists = sum(`totalassists`)
+  ) %&gt;%
+  mutate(seasonsplayed = seasonsplayed-8, totalpoints = totalpoints-11995, totalrebounds = totalrebounds-2130, totalassists = totalassists-1416,
+seasonsplayed = seasonsplayed/76,
+  totalpoints = totalpoints/76,
+totalrebounds = totalrebounds/76,
+totalassists = totalassists/76)</code></pre>
+<pre><code>## # A tibble: 1 × 4
+##   seasonsplayed totalpoints totalrebounds totalassists
+##           &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;
+## 1          14.3      20708.         8200.        4637.</code></pre>
+<p>We’ll give him his own dataframe.</p>
+<pre class="r"><code>data %&gt;%
+  select(&quot;player&quot;, &quot;totalpoints&quot;, &quot;totalrebounds&quot;, &quot;totalassists&quot;) %&gt;%
+  filter(player == &quot;Klay Thompson&quot;) -&gt; KlayThompson</code></pre>
+<p>Now, we’ll add the average NBA 75 player to the dataframe with Klay’s numbers.</p>
+<pre class="r"><code>KlayThompson %&gt;%
+  mutate( tonba75avgpoints = 20708.43,
+         tonba75avgrebounds = 8200.039,
+         tonba75avgassists = 4637.211
+  ) -&gt; KlayThompson</code></pre>
+<p>I want to split the data to work with, and I need to do that by pivoting longer. That’s what I’ll do.</p>
+<pre class="r"><code>KlayThompson %&gt;%
+  pivot_longer(
+    cols=starts_with(&quot;to&quot;),
+    names_to = &quot;Type&quot;,
+    values_to = &quot;Stats&quot;) -&gt; Klay75</code></pre>
+<p>To sort it a bit better, I’ll arrange it by the stat number.</p>
+<pre class="r"><code>Klay75 %&gt;%
+ arrange(desc(Stats))</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   player        Type                Stats
+##   &lt;chr&gt;         &lt;chr&gt;               &lt;dbl&gt;
+## 1 Klay Thompson tonba75avgpoints   20708.
+## 2 Klay Thompson totalpoints        11995 
+## 3 Klay Thompson tonba75avgrebounds  8200.
+## 4 Klay Thompson tonba75avgassists   4637.
+## 5 Klay Thompson totalrebounds       2130 
+## 6 Klay Thompson totalassists        1416</code></pre>
+<p>So now we can build our chart. How does Klay stack up to other NBA 75ers stat wise?</p>
+<pre class="r"><code>ggplot() +
+  geom_bar(data=Klay75, aes(x=reorder(Type,Stats), weight=Stats, fill=Stats)) + 
+  labs(
+  title= &quot;Thompson&#39;s NBA Career Compared to the average NBA 75 player&quot;,
+  x=&quot;Player&quot;,
+  y=&quot;StatCount&quot;) + 
+  coord_flip()</code></pre>
+<p><img src="/2021/12/05/should-klay-thompson-be-on-the-nba-75-year-anniversary-team/index_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+As you can see, Klay is below average in all three major categories: not a great look for his place on this list. It’s worth noting that he’s still an active player. So now, let’s compare him to other active players and see how he’s done relative to them.</p>
+<p>We’ll start by sorting active players.</p>
+<pre class="r"><code>data %&gt;%
+  filter(active == &quot;yes&quot;) -&gt; active</code></pre>
+<p>I want to add something a little less quantitative in here: accolades. We’ll figure that by adding All-NBA selection and All Star selections. For my chart, I also want to know if the player has won any MVP’s , so I’ll throw that in there as well.</p>
+<pre class="r"><code>active2 &lt;- active %&gt;%
+  group_by(player,position) %&gt;%
+  mutate(accolades = allstar+allnba) %&gt;%
+  summarize(
+    TotalPoints = sum(totalpoints),
+    rings = sum(rings),
+    MVP = sum(mvp),
+    Accolades = sum(accolades)
+  )</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;player&#39;. You can override using the `.groups` argument.</code></pre>
+<p>I’m going to highlight this on my chart, so this is how.</p>
+<pre class="r"><code>MVPStatus &lt;- active2 %&gt;%
+  filter(MVP &gt; 0)</code></pre>
+<p>One more thing, I want the average of these numbers for the players in this dataframe so I can mark it on the chart. Heres those numbers.</p>
+<pre class="r"><code>active2 %&gt;%
+  ungroup() %&gt;%
+  summarize(
+    points = mean(TotalPoints),
+    acc = mean(Accolades)
+  )</code></pre>
+<pre><code>## # A tibble: 1 × 2
+##   points   acc
+##    &lt;dbl&gt; &lt;dbl&gt;
+## 1 19551.  15.8</code></pre>
+<p>Load the libary.</p>
+<pre class="r"><code>library(ggrepel)</code></pre>
+<p>Here is wheer we put it all together.</p>
+<pre class="r"><code>ggplot() + 
+  geom_point(data=active2,aes(x=TotalPoints, y=Accolades,size=rings), alpha = .8) +
+scale_size(range = c(2,6), name=&quot;Championships&quot;) +
+  geom_point(
+    data=MVPStatus,
+    aes(x=TotalPoints, y=Accolades,size=rings), color=&quot;gold&quot;
+  ) +
+  geom_vline(xintercept = 19550.92) +
+  geom_hline(yintercept = 15.83333) +
+  geom_text_repel(
+    data=active2,
+    aes(x=TotalPoints, y=Accolades, label=player))  +
+  labs(title = &quot;Where does Klay stack up against other active NBA 75 teamers?&quot;, subtitle=&quot;Klay Thompson is below the average points and accolades (All Star appearances plus All-NBA selection) of other active players on the NBA 75 team, but he does boast 3 championships to his name&quot;, caption = &quot;Source: Sports Reference | By Nathan Hawkins&quot;) + theme_minimal() + 
+  theme(
+    plot.title = element_text(size = 20, face = &quot;bold&quot;),
+    axis.title = element_text(size = 8),
+    plot.subtitle = element_text (size = 6),
+    panel.grid.minor = element_blank()
+  )</code></pre>
+<p><img src="/2021/12/05/should-klay-thompson-be-on-the-nba-75-year-anniversary-team/index_files/figure-html/unnamed-chunk-15-1.png" width="672" />
+As you can see, Klay is at the bottom in accolades, and he’s nearly last in points scored for active players. It’s not looking too good for our Splash Brother.</p>
+<p>I don’t want to count Klay out just yet. Let’s sim the rest of his career and see if he has a shot to be an NBA 75ers by the time he’s wrapped up.</p>
+<p>First, we’ll simulate his three point shooting. Based on his average shots per season and average shot percentage, we’ll run that.</p>
+<pre class="r"><code>set.seed(1234)
+
+simulations1 &lt;- rbinom (n = 1000, size = 536, prob = .419)
+
+table(simulations1)</code></pre>
+<pre><code>## simulations1
+## 185 192 193 195 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 
+##   1   1   1   4   3   2   4   4   6   2   4   9  11   4   9  12  13  20  21  24 
+## 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 
+##  22  26  16  28  33  24  31  34  41  28  33  29  48  30  35  35  34  36  26  19 
+## 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 
+##  30  30  29  17  13  22  14  14   7   9   4  10   4   4   7   6   4   2   2   1 
+## 253 254 255 256 258 260 261 
+##   1   1   1   2   1   1   1</code></pre>
+<p>The most common is 225. Let’s roll with that.</p>
+<p>Next is 2-pointers. Same steps.</p>
+<pre class="r"><code>set.seed(1234)
+
+simulations2 &lt;- rbinom (n = 1000, size = 692, prob = .491)
+
+table(simulations2)</code></pre>
+<pre><code>## simulations2
+## 298 302 304 305 306 307 308 309 310 311 312 313 314 315 316 317 318 319 320 321 
+##   1   1   1   2   1   1   2   1   2   2   4   2   4   6  10   3   3  10   7  10 
+## 322 323 324 325 326 327 328 329 330 331 332 333 334 335 336 337 338 339 340 341 
+##  15  15  22  17  21  15  21  24  25  25  25  20  34  26  24  30  26  45  25  27 
+## 342 343 344 345 346 347 348 349 350 351 352 353 354 355 356 357 358 359 360 361 
+##  34  30  31  38  29  18  28  23  26  24  18  14  14  15  10  13  11  11   6   8 
+## 362 363 364 365 366 367 368 369 370 371 373 374 375 380 382 
+##   6   6   5   5   4   6   1   3   2   1   1   1   1   1   1</code></pre>
+<p>Next is free throws. Same steps here as well.</p>
+<pre class="r"><code>set.seed(1234)
+
+simulations3 &lt;- rbinom(n=1000, size=173, prob=.848)
+
+table(simulations3)</code></pre>
+<pre><code>## simulations3
+## 131 132 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 
+##   2   2   2   6  14  16  12  28  37  30  42  65  59  79  89  81  78  82  71  58 
+## 152 153 154 155 156 157 158 159 160 161 
+##  45  33  22  22   8   7   2   4   2   2</code></pre>
+<p>4,140 points of 2’s, 4,050 points of 3’s, 8,190 points total to finish out his NBA career. Let’s get complicated and make this a dataframe.</p>
+<pre class="r"><code>KlayThompson %&gt;%
+  mutate(pointsprojected = ((225*3)*6)+((345*2)*6)+(146*6),
+reboundsprojected = ((totalrebounds/8)*6),
+assistsprojected = ((totalassists/8)*6),
+TotalPointsProject = totalpoints + pointsprojected,
+TotalReboundsProject = totalrebounds + reboundsprojected,
+TotalAssistsProjected = totalassists + assistsprojected) -&gt; KlayThompsonProjections</code></pre>
+<pre class="r"><code>KlayThompsonProjections</code></pre>
+<pre><code>## # A tibble: 1 × 13
+##   player        totalpoints totalrebounds totalassists tonba75avgpoints
+##   &lt;chr&gt;               &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;            &lt;dbl&gt;
+## 1 Klay Thompson       11995          2130         1416           20708.
+## # … with 8 more variables: tonba75avgrebounds &lt;dbl&gt;, tonba75avgassists &lt;dbl&gt;,
+## #   pointsprojected &lt;dbl&gt;, reboundsprojected &lt;dbl&gt;, assistsprojected &lt;dbl&gt;,
+## #   TotalPointsProject &lt;dbl&gt;, TotalReboundsProject &lt;dbl&gt;,
+## #   TotalAssistsProjected &lt;dbl&gt;</code></pre>
+<p>As we can see, if Klay can play out the rest of his career at an elite level, maybe, just maybe, he could crack the list. But he might also need some more All Star and All NBA appearances to make that happen. For now, it’s safe to say that Klay’s argument isn’t complete. He shouldn’t be an NBA 75 player.</p>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+
